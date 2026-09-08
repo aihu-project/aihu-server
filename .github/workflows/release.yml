@@ -43,18 +43,22 @@ jobs:
           - target: aarch64-apple-darwin
             runner: macos-14
             package: darwin-arm64
+            cdylib: libaihu_server_native.dylib
             binary: server-native.darwin-arm64.node
           - target: x86_64-apple-darwin
-            runner: macos-15-intel
+            runner: macos-14
             package: darwin-x64
+            cdylib: libaihu_server_native.dylib
             binary: server-native.darwin-x64.node
           - target: x86_64-unknown-linux-gnu
             runner: ubuntu-22.04
             package: linux-x64-gnu
+            cdylib: libaihu_server_native.so
             binary: server-native.linux-x64-gnu.node
           - target: x86_64-pc-windows-msvc
             runner: windows-2022
             package: win32-x64-msvc
+            cdylib: aihu_server_native.dll
             binary: server-native.win32-x64-msvc.node
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
@@ -76,7 +80,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "npm/${{ matrix.package }}"
-          source_path="src-native/target/${{ matrix.target }}/release/${{ matrix.binary }}"
+          source_path="src-native/target/${{ matrix.target }}/release/${{ matrix.cdylib }}"
           test -s "$source_path"
           cp "$source_path" "npm/${{ matrix.package }}/${{ matrix.binary }}"
           test -s "npm/${{ matrix.package }}/${{ matrix.binary }}"
