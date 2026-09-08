@@ -1,0 +1,12 @@
+dist/
+node_modules/
+.turbo/
+.moon/
+coverage/
+src-native/target/
+*.tsbuildinfo
+
+# Codemap keeps machine-local maps and sessions out of commits while the
+# reviewed config remains versioned.
+.codemap/*
+!.codemap/config.json

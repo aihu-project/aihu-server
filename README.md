@@ -1,19 +1,13 @@
 # @aihu/server
 
-> **Aihu** — agentic discovery and interaction, for human purpose.
+Server runtime and native renderer for Aihu SSR.
 
-Server runtime + native renderer (napi-rs) for aihu SSR.
-
-Part of the **meta-framework** layer of Aihu. Provides whole-app capability — file-based routing, SSR, loaders, cookies — without the boilerplate other meta-frameworks impose. See [arch-1](../../docs/roadmap/arch-1-website.md) for the meta-framework contract.
-
-<!-- BEGIN_HANDWRITTEN: prose -->
-_(Hand-written prose lives in this block. Replace this placeholder; everything below is auto-generated.)_
-<!-- END_HANDWRITTEN: prose -->
+This repository owns the server-side boundary: request routing, data loaders,
+governed reads, streaming, SSR output, and the optional napi-rs renderer. It
+stays provider-neutral: deployment adapters supply platform bindings and the
+router remains a separate package.
 
 ## Install
-
-<!-- BEGIN_AUTOGEN: install -->
-<!-- regenerate: bun scripts/sync-readme.ts (also runs in pre-commit + CI) -->
 
 ```bash
 npm install @aihu/server
@@ -23,28 +17,16 @@ bun add @aihu/server
 
 <sub><i>Auto-generated against `@aihu/server@0.6.0`.</i></sub>
 
-<!-- END_AUTOGEN: install -->
-
 ## Package facts
-
-<!-- BEGIN_AUTOGEN: stats -->
-<!-- regenerate: bun scripts/sync-readme.ts (also runs in pre-commit + CI) -->
 
 | | |
 |---|---|
 | **Version** | `0.6.0` |
 | **Tier** | B — Meta-framework — SSR + native renderer (napi-rs) |
-| **Published files** | 3 entries |
+| **Published files** | `dist`, `README.md`, `LICENSE` |
 | **License** | MIT |
 
-<sub><i>Auto-generated against `@aihu/server@0.6.0`.</i></sub>
-
-<!-- END_AUTOGEN: stats -->
-
 ## Exports
-
-<!-- BEGIN_AUTOGEN: exports -->
-<!-- regenerate: bun scripts/sync-readme.ts (also runs in pre-commit + CI) -->
 
 | Subpath | ESM | CJS |
 |---|---|---|
@@ -52,21 +34,19 @@ bun add @aihu/server
 | `./native` | `./dist/native.js` | `—` |
 | `./head-lowering` | `./dist/head-lowering.js` | `—` |
 
-<sub><i>Auto-generated against `@aihu/server@0.6.0`.</i></sub>
-
-<!-- END_AUTOGEN: exports -->
 
 ## Dependencies
 
-<!-- BEGIN_AUTOGEN: deps -->
-<!-- regenerate: bun scripts/sync-readme.ts (also runs in pre-commit + CI) -->
-
 **Dependencies:**
 
-- `@aihu/agent` — `workspace:*`
-- `@aihu/agent-service` — `workspace:*`
-- `@aihu/plugin` — `workspace:*`
+- `@aihu/agent` — `^0.2.0`
+- `@aihu/agent-service` — `^0.4.0`
+- `@aihu/plugin` — `^0.1.0`
 - `@aihu/signals` — `^0.5.1`
+
+**Build-time dependencies:**
+
+- `@aihu/runtime` — `^6.1.0` (bundled SSR string helpers)
 
 **Optional dependencies (platform-specific):**
 
@@ -75,32 +55,13 @@ bun add @aihu/server
 - `@aihu/server-linux-x64-gnu` — `0.1.2`
 - `@aihu/server-win32-x64-msvc` — `0.1.2`
 
-<sub><i>Auto-generated against `@aihu/server@0.6.0`.</i></sub>
-
-<!-- END_AUTOGEN: deps -->
 
 ## See also
 
-<!-- BEGIN_AUTOGEN: see-also -->
-<!-- regenerate: bun scripts/sync-readme.ts (also runs in pre-commit + CI) -->
-
-- [arch-1 (website)](../../docs/roadmap/arch-1-website.md)
 - [SSR & hydration guide](https://aihu.dev/guides/ssr-hydration)
-- [@aihu/router](../router)
-- [@aihu-plugin/agent-readiness](../plugin-agent-readiness)
-- [Aihu framework root](../../README.md)
-
-<sub><i>Auto-generated against `@aihu/server@0.6.0`.</i></sub>
-
-<!-- END_AUTOGEN: see-also -->
+- [@aihu/router](https://github.com/aihu-project/aihu/tree/main/packages/router)
+- [@aihu-plugin/agent-readiness](https://github.com/aihu-project/aihu/tree/main/packages/plugin-agent-readiness)
 
 ## License
 
-<!-- BEGIN_AUTOGEN: license -->
-<!-- regenerate: bun scripts/sync-readme.ts (also runs in pre-commit + CI) -->
-
-MIT — see [LICENSE](../../LICENSE).
-
-<sub><i>Auto-generated against `@aihu/server@0.6.0`.</i></sub>
-
-<!-- END_AUTOGEN: license -->
+MIT — see [LICENSE](./LICENSE).

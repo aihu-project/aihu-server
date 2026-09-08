@@ -1,5 +1,5 @@
-import { renderToString } from '@aihu/server'
 import { describe, expect, it } from 'vitest'
+import { renderToString } from '../../src/index.ts'
 
 describe('@aihu/server SSR structural compliance', () => {
   // Test 1: DOCTYPE present when opts.head provided

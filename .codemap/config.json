@@ -1,0 +1,36 @@
+{
+  "only": ["ts", "rs", "json", "toml", "md", "yml"],
+  "exclude": ["dist", "node_modules", "coverage", "src-native/target"],
+  "depth": 4,
+  "routing": {
+    "subsystems": [
+      {
+        "name": "native-renderer-boundary",
+        "paths": [
+          "src/native.ts",
+          "src/loader.ts",
+          "src-native/**",
+          "npm/**",
+          "scripts/check-platform-pins.ts",
+          "tests/native-parity.test.ts",
+          "package.json"
+        ],
+        "keywords": ["@aihu/server/native", "server-native", "render_tree", "render_document"],
+        "docs": ["README.md"],
+        "note": "The loader's platform package names and the Rust napi export contract are string and FFI couplings, so Codemap has no import edge to follow."
+      },
+      {
+        "name": "ssr-output-contract",
+        "paths": [
+          "src/ssr.ts",
+          "src-native/src/render.rs",
+          "tests/native-parity.test.ts",
+          "tests/compliance/**"
+        ],
+        "keywords": ["hydratable", "renderToString", "render_document", "data-aihu-path"],
+        "docs": ["README.md"],
+        "note": "The TypeScript and Rust renderers intentionally mirror output rules across a language boundary; the parity suite is the executable coupling."
+      }
+    ]
+  }
+}

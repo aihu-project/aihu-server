@@ -94,7 +94,7 @@ export async function renderToString(
 
 // ---------------------------------------------------------------------------
 // Test/introspection helpers (NOT part of the public @aihu/server surface;
-// imported only by packages/server/tests/native-parity.test.ts). These proxy
+// imported only by tests/native-parity.test.ts). These proxy
 // to the native boundary so the test surface is preserved. They are async
 // because the native module is loaded lazily (keeping node:module out of the
 // main static graph is the whole point of the split).

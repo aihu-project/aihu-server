@@ -15,8 +15,8 @@
  * typecheck). We therefore RESTATE the structural shape here as `RouteHead`.
  * This is the clean option: the mapper stays dependency-free and pure, the
  * structural type is byte-for-byte compatible with the compiler's emitted
- * `.route.json` head object (see packages/compiler/src/types.rs `RouteHead`),
- * and `@aihu/router`'s eventual `RouteHead` is structurally assignable to this
+ * `.route.json` head object (`RouteHead` in the compiler source),
+ * and the router package's eventual `RouteHead` is structurally assignable to this
  * one. When B2 lands, callers can pass a router `RouteHead` directly with no
  * change here.
  */

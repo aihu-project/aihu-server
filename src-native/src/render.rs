@@ -80,8 +80,8 @@ pub struct HeadConfig {
 pub fn render_tree_string(tree_json: &str, hydratable: bool) -> Result<String, String> {
     // Parse permissively into a Value so we can mirror the JS branch logic
     // (which checks for `kind` and silently returns '' for unknowns).
-    let root: Value = serde_json::from_str(tree_json)
-        .map_err(|e| format!("invalid tree JSON: {e}"))?;
+    let root: Value =
+        serde_json::from_str(tree_json).map_err(|e| format!("invalid tree JSON: {e}"))?;
     let mut out = String::with_capacity(256);
     render_value(&root, "0", hydratable, &mut out);
     Ok(out)
@@ -95,8 +95,8 @@ pub fn render_document_string(
     head_json: &str,
     hydratable: bool,
 ) -> Result<String, String> {
-    let head: HeadConfig = serde_json::from_str(head_json)
-        .map_err(|e| format!("invalid head JSON: {e}"))?;
+    let head: HeadConfig =
+        serde_json::from_str(head_json).map_err(|e| format!("invalid head JSON: {e}"))?;
     let head_html = build_head(&head);
     let lang_attr = match head.lang.as_deref() {
         Some(s) if !s.is_empty() => format!(" lang=\"{}\"", escape_attr(s)),
@@ -393,7 +393,9 @@ mod tests {
     #[test]
     fn nested_branch_with_leaf() {
         assert_eq!(
-            render(r#"{"kind":"branch","tag":"p","attrs":{},"children":[{"kind":"leaf","text":"X"}]}"#),
+            render(
+                r#"{"kind":"branch","tag":"p","attrs":{},"children":[{"kind":"leaf","text":"X"}]}"#
+            ),
             "<p>X</p>"
         );
     }
@@ -424,12 +426,9 @@ mod tests {
 
     #[test]
     fn document_with_lang() {
-        let html = render_document_string(
-            r#"{"kind":"leaf","text":""}"#,
-            r#"{"lang":"en"}"#,
-            false,
-        )
-        .unwrap();
+        let html =
+            render_document_string(r#"{"kind":"leaf","text":""}"#, r#"{"lang":"en"}"#, false)
+                .unwrap();
         assert!(html.starts_with("<!DOCTYPE html><html lang=\"en\"><head></head><body>"));
         assert!(html.ends_with("</body></html>"));
     }

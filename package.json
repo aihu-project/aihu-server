@@ -32,12 +32,19 @@
   "scripts": {
     "build": "rolldown -c",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:rust": "cargo test --manifest-path src-native/Cargo.toml",
+    "lint": "biome lint .",
+    "format": "biome format --write .",
+    "check:lint": "biome ci .",
+    "check:platform-pins": "bun scripts/check-platform-pins.ts",
+    "check:ci": "bun run check:lint && bun run typecheck && bun run test && bun run test:rust && bun run build && bun run check:platform-pins && bun pm pack --dry-run",
     "prepublishOnly": "bun run build"
   },
   "dependencies": {
-    "@aihu/agent": "workspace:*",
-    "@aihu/agent-service": "workspace:*",
-    "@aihu/plugin": "workspace:*",
+    "@aihu/agent": "^0.2.0",
+    "@aihu/agent-service": "^0.4.0",
+    "@aihu/plugin": "^0.1.0",
     "@aihu/signals": "^0.5.1"
   },
   "optionalDependencies": {
@@ -49,15 +56,22 @@
   "description": "Server runtime + native renderer (napi-rs) for aihu SSR.",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aihu-project/aihu.git",
-    "directory": "packages/server"
+    "url": "git+https://github.com/aihu-project/aihu-server.git"
   },
-  "homepage": "https://github.com/aihu-project/aihu/tree/main/packages/server#readme",
-  "bugs": "https://github.com/aihu-project/aihu/issues",
+  "homepage": "https://github.com/aihu-project/aihu-server#readme",
+  "bugs": "https://github.com/aihu-project/aihu-server/issues",
   "publishConfig": {
     "access": "public"
   },
   "devDependencies": {
-    "@aihu/runtime": "workspace:*"
+    "@aihu/arbor": "^4.1.2",
+    "@aihu/runtime": "^6.1.0",
+    "@biomejs/biome": "2.4.14",
+    "@types/node": "^20.16.5",
+    "fast-check": "^3.22.0",
+    "rolldown": "^1.0.0-rc.17",
+    "rolldown-plugin-dts": "^0.23.2",
+    "typescript": "^5.6.2",
+    "vitest": "^3.2.6"
   }
 }

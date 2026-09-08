@@ -43,7 +43,7 @@ import { _appendStateScript, renderToString as tsRenderToString } from './ssr.ts
 //
 // Maps process.platform + process.arch to the platform package name and the
 // .node file inside it. Mirrors the package directory names under
-// packages/server/npm/<platform>/ and the napi-rs distribution convention.
+// npm/<platform>/ and the napi-rs distribution convention.
 
 export interface PlatformDescriptor {
   readonly platformId: string

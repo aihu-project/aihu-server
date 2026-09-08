@@ -44,11 +44,7 @@ pub fn render_tree(tree_json: String, hydratable: bool) -> Result<String> {
 /// included in the Rust output. The JS loader injects it before </body></html>
 /// when applicable.
 #[napi]
-pub fn render_document(
-    tree_json: String,
-    head_json: String,
-    hydratable: bool,
-) -> Result<String> {
+pub fn render_document(tree_json: String, head_json: String, hydratable: bool) -> Result<String> {
     render::render_document_string(&tree_json, &head_json, hydratable)
         .map_err(|e| Error::new(Status::InvalidArg, e))
 }
