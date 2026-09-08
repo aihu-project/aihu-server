@@ -1,0 +1,97 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build-native:
+    name: Build ${{ matrix.target }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: aarch64-apple-darwin
+            runner: macos-14
+            package: darwin-arm64
+            binary: server-native.darwin-arm64.node
+          - target: x86_64-apple-darwin
+            runner: macos-14
+            package: darwin-x64
+            binary: server-native.darwin-x64.node
+          - target: x86_64-unknown-linux-gnu
+            runner: ubuntu-22.04
+            package: linux-x64-gnu
+            binary: server-native.linux-x64-gnu.node
+          - target: x86_64-pc-windows-msvc
+            runner: windows-2022
+            package: win32-x64-msvc
+            binary: server-native.win32-x64-msvc.node
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.95.0
+        with:
+          targets: ${{ matrix.target }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - name: Build native addon
+        run: cargo build --manifest-path src-native/Cargo.toml --release --target ${{ matrix.target }}
+      - name: Stage native addon
+        shell: bash
+        run: |
+          mkdir -p "npm/${{ matrix.package }}"
+          cp "src-native/target/${{ matrix.target }}/release/${{ matrix.binary }}" "npm/${{ matrix.package }}/${{ matrix.binary }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-${{ matrix.package }}
+          path: npm/${{ matrix.package }}/${{ matrix.binary }}
+
+  publish-native:
+    name: Publish ${{ matrix.package }}
+    needs: build-native
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - package: darwin-arm64
+            binary: server-native.darwin-arm64.node
+          - package: darwin-x64
+            binary: server-native.darwin-x64.node
+          - package: linux-x64-gnu
+            binary: server-native.linux-x64-gnu.node
+          - package: win32-x64-msvc
+            binary: server-native.win32-x64-msvc.node
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - uses: actions/download-artifact@v4
+        with:
+          name: native-${{ matrix.package }}
+          path: npm/${{ matrix.package }}
+      - name: Publish native package
+        working-directory: npm/${{ matrix.package }}
+        run: npm publish --access public
+
+  publish-host:
+    name: Publish @aihu/server
+    needs: publish-native
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bun run check:platform-pins
+      - run: bun run build
+      - run: npm publish --access public

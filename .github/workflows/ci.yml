@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - uses: dtolnay/rust-toolchain@1.95.0
+      - run: bun install --frozen-lockfile
+      - run: cargo test --manifest-path src-native/Cargo.toml
+      - run: bun run check:lint
+      - run: bun run typecheck
+      - run: AIHU_NATIVE_SKIP=1 bun run test
+      - run: bun run build
+      - run: bun run check:platform-pins
+      - run: bun pm pack --dry-run
+
