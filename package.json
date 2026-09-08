@@ -38,6 +38,7 @@
     "format": "biome format --write .",
     "check:lint": "biome ci .",
     "check:platform-pins": "bun scripts/check-platform-pins.ts",
+    "check:release-version": "bun scripts/check-release-version.ts",
     "check:ci": "bun run check:lint && bun run typecheck && bun run test && bun run test:rust && bun run build && bun run check:platform-pins && bun pm pack --dry-run",
     "prepublishOnly": "bun run build"
   },

@@ -6,21 +6,46 @@ on:
 
 permissions:
   contents: read
-  id-token: write
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  NPM_REGISTRY: https://registry.npmjs.org
 
 jobs:
+  validate-release:
+    name: Validate release metadata
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Verify tag and platform pins
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          bun run check:release-version "$RELEASE_TAG"
+          bun run check:platform-pins
+
   build-native:
     name: Build ${{ matrix.target }}
+    needs: validate-release
     strategy:
       fail-fast: false
       matrix:
+        # These are the four targets represented by the published optional
+        # dependencies. Keep this list synchronized with check-platform-pins.
         include:
           - target: aarch64-apple-darwin
             runner: macos-14
             package: darwin-arm64
             binary: server-native.darwin-arm64.node
           - target: x86_64-apple-darwin
-            runner: macos-14
+            runner: macos-15-intel
             package: darwin-x64
             binary: server-native.darwin-x64.node
           - target: x86_64-unknown-linux-gnu
@@ -32,6 +57,7 @@ jobs:
             package: win32-x64-msvc
             binary: server-native.win32-x64-msvc.node
     runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@1.95.0
@@ -41,22 +67,31 @@ jobs:
         with:
           bun-version: latest
       - run: bun install --frozen-lockfile
+      - name: Verify platform pins
+        run: bun run check:platform-pins
       - name: Build native addon
         run: cargo build --manifest-path src-native/Cargo.toml --release --target ${{ matrix.target }}
       - name: Stage native addon
         shell: bash
         run: |
+          set -euo pipefail
           mkdir -p "npm/${{ matrix.package }}"
-          cp "src-native/target/${{ matrix.target }}/release/${{ matrix.binary }}" "npm/${{ matrix.package }}/${{ matrix.binary }}"
+          source_path="src-native/target/${{ matrix.target }}/release/${{ matrix.binary }}"
+          test -s "$source_path"
+          cp "$source_path" "npm/${{ matrix.package }}/${{ matrix.binary }}"
+          test -s "npm/${{ matrix.package }}/${{ matrix.binary }}"
       - uses: actions/upload-artifact@v4
         with:
           name: native-${{ matrix.package }}
           path: npm/${{ matrix.package }}/${{ matrix.binary }}
+          if-no-files-found: error
+          retention-days: 7
 
   publish-native:
     name: Publish ${{ matrix.package }}
     needs: build-native
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:
@@ -71,27 +106,94 @@ jobs:
             binary: server-native.win32-x64-msvc.node
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v4
         with:
-          bun-version: latest
+          node-version: 22
+          registry-url: ${{ env.NPM_REGISTRY }}
       - uses: actions/download-artifact@v4
         with:
           name: native-${{ matrix.package }}
           path: npm/${{ matrix.package }}
-      - name: Publish native package
+      - name: Validate downloaded addon
+        shell: bash
         working-directory: npm/${{ matrix.package }}
-        run: npm publish --access public
+        run: |
+          set -euo pipefail
+          test "$(find . -maxdepth 1 -type f -name '*.node' | wc -l | tr -d ' ')" = 1
+          test -s "${{ matrix.binary }}"
+          test "$(node -p "require('./package.json').name")" = "@aihu/server-${{ matrix.package }}"
+          test "$(node -p "require('./package.json').main")" = "${{ matrix.binary }}"
+          npm pack --dry-run >/dev/null
+      - name: Authenticate npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "$NODE_AUTH_TOKEN" || { echo 'NPM_TOKEN repository secret is required'; exit 1; }
+          npm whoami --registry "$NPM_REGISTRY"
+      - name: Publish native package if needed
+        shell: bash
+        working-directory: npm/${{ matrix.package }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          package_name="$(node -p "require('./package.json').name")"
+          package_version="$(node -p "require('./package.json').version")"
+          view_error="$(mktemp)"
+          trap 'rm -f "$view_error"' EXIT
+          if npm view "${package_name}@${package_version}" version --registry "$NPM_REGISTRY" >/dev/null 2>"$view_error"; then
+            echo "${package_name}@${package_version} is already published; skipping"
+          elif grep -Eq 'E404|404 Not Found' "$view_error"; then
+            npm publish --access public --registry "$NPM_REGISTRY"
+          else
+            cat "$view_error"
+            exit 1
+          fi
 
   publish-host:
     name: Publish @aihu/server
-    needs: publish-native
-    runs-on: ubuntu-latest
+    needs: [validate-release, publish-native]
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: ${{ env.NPM_REGISTRY }}
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
       - run: bun install --frozen-lockfile
-      - run: bun run check:platform-pins
-      - run: bun run build
-      - run: npm publish --access public
+      - name: Authenticate npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          test -n "$NODE_AUTH_TOKEN" || { echo 'NPM_TOKEN repository secret is required'; exit 1; }
+          npm whoami --registry "$NPM_REGISTRY"
+      - name: Verify release metadata and build host package
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          bun run check:release-version "$RELEASE_TAG"
+          bun run check:platform-pins
+          bun run build
+      - name: Publish host package if needed
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          set -euo pipefail
+          package_name="$(node -p "require('./package.json').name")"
+          package_version="$(node -p "require('./package.json').version")"
+          view_error="$(mktemp)"
+          trap 'rm -f "$view_error"' EXIT
+          if npm view "${package_name}@${package_version}" version --registry "$NPM_REGISTRY" >/dev/null 2>"$view_error"; then
+            echo "${package_name}@${package_version} is already published; skipping"
+          elif grep -Eq 'E404|404 Not Found' "$view_error"; then
+            npm publish --access public --registry "$NPM_REGISTRY"
+          else
+            cat "$view_error"
+            exit 1
+          fi
