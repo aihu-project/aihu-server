@@ -13,17 +13,24 @@ jobs:
     name: Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: latest
-      - uses: dtolnay/rust-toolchain@1.95.0
-      - run: bun install --frozen-lockfile
+      - uses: dtolnay/rust-toolchain@6c977a6ca4077a0ceb28ffbe03f59d46e9ac8772 # 1.95.0
+        with:
+          toolchain: 1.95.0
+      - run: bun install --frozen-lockfile --ignore-scripts
       - run: cargo test --manifest-path src-native/Cargo.toml
       - run: bun run check:lint
       - run: bun run typecheck
       - run: AIHU_NATIVE_SKIP=1 bun run test
       - run: bun run build
       - run: bun run check:platform-pins
-      - run: bun pm pack --dry-run
-
+      - name: Pack and consume exact artifact
+        run: |
+          set -euo pipefail
+          pack_dir="$RUNNER_TEMP/aihu-server-ci-pack"
+          PACK_DIR="$pack_dir" node scripts/verify-pack.mjs
+          pack_path=$(node -e "const fs=require('node:fs'),path=require('node:path'); const d=process.argv[1]; const xs=fs.readdirSync(d).filter((x)=>x.endsWith('.tgz')); if(xs.length!==1) process.exit(1); process.stdout.write(path.join(d,xs[0]))" "$pack_dir")
+          node scripts/consumer-smoke.mjs "$pack_path"
