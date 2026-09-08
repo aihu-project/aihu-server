@@ -15,13 +15,13 @@ npm install @aihu/server
 bun add @aihu/server
 ```
 
-<sub><i>Auto-generated against `@aihu/server@0.6.0`.</i></sub>
+<sub><i>Auto-generated against `@aihu/server@0.6.1`.</i></sub>
 
 ## Package facts
 
 | | |
 |---|---|
-| **Version** | `0.6.0` |
+| **Version** | `0.6.1` |
 | **Tier** | B — Meta-framework — SSR + native renderer (napi-rs) |
 | **Published files** | `dist`, `README.md`, `LICENSE` |
 | **License** | MIT |

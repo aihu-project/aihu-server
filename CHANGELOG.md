@@ -1,5 +1,15 @@
 # @aihu/server
 
+## 0.6.1
+
+### Patch Changes
+
+- Preserve component property transport keys during SSR serialization. The
+  compiler's `__aihu_prop:` marker now becomes the public property name in
+  emitted HTML, and hydratable state records it as a property signal. This
+  keeps callback and non-primitive props intact across a custom-element
+  boundary.
+
 ## 0.6.0
 
 ### Minor Changes
