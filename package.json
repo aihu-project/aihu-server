@@ -42,6 +42,7 @@
     "check:ci": "bun run check:lint && bun run typecheck && bun run test && bun run test:rust && bun run build && bun run check:platform-pins && bun pm pack --dry-run",
     "verify:pack": "node scripts/verify-pack.mjs",
     "consumer:smoke": "node scripts/consumer-smoke.mjs",
+    "test:release-contract": "node scripts/release-contract-regression.mjs",
     "prepublishOnly": "bun run build"
   },
   "dependencies": {

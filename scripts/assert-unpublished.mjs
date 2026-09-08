@@ -1,7 +1,8 @@
 import { spawnSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 
-const p = JSON.parse(readFileSync(new URL('../package.json', import.meta.url)))
+const p = JSON.parse(readFileSync(resolve(process.argv[2] ?? '.', 'package.json')))
 const spec = `${p.name}@${p.version}`
 const r = spawnSync(
   'npm',
